@@ -41,7 +41,7 @@ class LaneFollowerManual(object):
         # return if no lanes detected, can't determine steering angle
         logging.debug('Steering...')
         if len(lane_lines) == 0:
-           loggine.error('No lane lines detected...')
+           logging.error('No lane lines detected...')
            return frame
         
         # compute required steering angle and stabilize if required (for extreme, sudden steering adjustments)

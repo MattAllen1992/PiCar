@@ -10,12 +10,7 @@ Car is an instance of the PiCar itself, equipped with
 video capture, driving controls, lane detection,
 object detection and storage of the recorded videos
 """
-class Car(object):
-    # config parameters
-    _initial_speed = 0
-    _screen_width = 320
-    _screen_height = 240
-    
+class Car(object):    
     def __init__(self):
         # initialize car API
         logging.info('Initializing Car...')
@@ -24,8 +19,8 @@ class Car(object):
         # select camera and set image dimensions
         logging.debug('Initializing Camera...')
         self.camera = cv2.VideoCapture(-1)
-        self.camera.set(3, self._screen_width)
-        self.camera.set(4, self._screen_height)
+        self.camera.set(3, 320)
+        self.camera.set(4, 240)
         
         # calibrate servo motors to centre (90)
         # DO NOT exceed -30:30 for offset calibration (offset = rotation)
@@ -49,7 +44,7 @@ class Car(object):
         
         # initialize lane following and object detection algorithms
         self.lane_follower_manual = LaneFollowerManual(self)
-        self.process_objects_on_road = RoadObjectsProcessor(self)
+        self.process_road_objects = RoadObjectsProcessor(self)
         
         # setup writer to store recorded video
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID') # write video to XVID format
@@ -62,7 +57,7 @@ class Car(object):
         
     # create video writer at 20 fps in XVID format
     def create_video_recorder(self, path):
-        return cv2.VideoWriter(path, self.fourcc, 20.0, (self._screen_width, self.screen_height)) # 20 fps
+        return cv2.VideoWriter(path, self.fourcc, 20.0, (320, 240)) # 20 fps
     
     # with statements - https://www.geeksforgeeks.org/with-statement-in-python/
     # entry point of video writer with statement
@@ -91,7 +86,7 @@ class Car(object):
         cv2.destroyAllWindows() # close opencv sessions/windows
         
     # drive car at specified speed, perform lane and object detection and record/write resulting images
-    def drive(self, speed=_initial_speed):
+    def drive(self, speed=0):
         # accelerate back wheels to requested speed (range 0-100)
         logging.info('Car driving at speed %s...' % speed)
         self.back_wheels.speed = speed
@@ -100,13 +95,16 @@ class Car(object):
         # while camera is capturing frames
         while self.camera.isOpened():
             # read frame and write to raw video
-            _, img_lane = self.camera.read()
+            ret, img_lane = self.camera.read()
+            if not ret:
+                logging.error('Camera couldn\'t get image.')
+                continue
             img_objs = img_lane.copy() # create copy of frame for separate lane and object detection
             i += 1
             self.video_orig.write(img_lane)
         
             # run object detection, save frame with objects overlay to video and show image
-            img_objs = self.process_objects_on_road(img_objs)
+            img_objs = self.process_road_objects.process_road_objects(img_objs)
             self.video_objs.write(img_objs)
             show_image('Detected Objects', img_objs)
         
@@ -122,7 +120,7 @@ class Car(object):
             
     # perform object detection
     def process_objects_on_road(self, img):
-        image = self.traffic_sign_processor.process_objects_on_road(img)
+        image = self.process_road_objects.process_road_objects(img)
         return
     
     # perform lane detection

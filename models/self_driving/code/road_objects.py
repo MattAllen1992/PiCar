@@ -12,7 +12,7 @@ class RoadObject(object):
     @staticmethod
     def is_close_by(obj, frame_height, min_height_pct=0.05):
         # if object height is more than 5% of frame height, it's close by
-        obj_height = obj.bounding_box[1][1]-obj.bounding_box[0][1]
+        obj_height = obj.bbox.ymax-obj.bbox.ymin
         return obj_height / frame_height > min_height_pct
 
 # stop when a red traffic light is detected
@@ -33,7 +33,7 @@ class Person(RoadObject):
         car_state['speed'] = 0
 
 # adjust speed limit based on detected sign/input
-class SpeedLimmit(RoadObject):
+class SpeedLimit(RoadObject):
     # store speed limit for reference
     def __init__(self, speed_limit):
         self.speed_limit = speed_limit
@@ -50,7 +50,7 @@ class StopSign(RoadObject):
         self.in_wait_mode = False
         self.has_stopped = False
         self.wait_time_in_sec = wait_time_in_sec
-        sef.min_no_stop_sign = min_no_stop_sign
+        self.min_no_stop_sign = min_no_stop_sign
         self.timer = None
     
     # react to stop sign

@@ -84,7 +84,7 @@ class RoadObjectsProcessor(object):
         for obj in objects:
             # identify object and get relevant navigation/processing method
             obj_label = self.labels.get(obj.id, obj.id)
-            processor = self.traffic_objects[obj.label_id]
+            processor = self.road_objects[obj.id]
             
             # if the object is close enough to respond to, call appropriate navigation response
             if processor.is_close_by(obj, self.height):
@@ -99,98 +99,98 @@ class RoadObjectsProcessor(object):
             
             # if no stop sign is detected for ~1 second, reset navigation parameters
             if not contain_stop_sign:
-                self.traffic_objects[5].clear()
+                self.road_objects[5].clear()
             
             # update speed according to latest car state
             self.resume_driving(car_state)
         
-        # apply latest car state parameters (i.e. adjust speed as appropriate)
-        def resume_driving(self, car_state):
-            # track old speed and set new speed
-            old_speed = self.speed
-            self.speed_limit = car_state['speed_limit']
-            self.speed = car_state['speed']
-            
-            # if 0, stop the car
-            if self.speed == 0:
-                self.set_speed(0)
-            # otherwise adjust speed as appropriate
-            else:
-                self.set_speed(self.speed_limit)                
-            logging.debug('Adjusting speed from %d to %d' % (old_speed, self.speed))
-            
-            # if 0, remain stopped for 1 second to allow
-            # stop sign processing etc. to run its course
-            if self.speed == 0:
-                logging.debug('Stop for 1 second')
-                time.sleep(1)
+    # apply latest car state parameters (i.e. adjust speed as appropriate)
+    def resume_driving(self, car_state):
+        # track old speed and set new speed
+        old_speed = self.speed
+        self.speed_limit = car_state['speed_limit']
+        self.speed = car_state['speed']
         
-        # update car speed if available and store speed
-        # variable regardless of whether or not a car exists        
-        def set_speed(self, speed):
-            self.speed = speed
-            if self.car is not None:
-                logging.debug('Setting car speed to %d' % speed)
-                self.car.back_wheels.speed = speed
-                
-        ########## IMAGE PROCESSING METHODS ##########
+        # if 0, stop the car
+        if self.speed == 0:
+            self.set_speed(0)
+        # otherwise adjust speed as appropriate
+        else:
+            self.set_speed(self.speed_limit)                
+        logging.debug('Adjusting speed from %d to %d' % (old_speed, self.speed))
         
-        # perform object detection and overlay onto original frame
-        # return detected objects for further use/analysis
-        def detect_objects(self, frame):
-            # adjust image for compatibility and optimal image detection
-            logging.debug('Detecting objects...')            
-            start_ms = time.time()
-            img = frame
-            img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img_rgb = cv2.resize(img_rgb, self.inference_size)
+        # if 0, remain stopped for 1 second to allow
+        # stop sign processing etc. to run its course
+        if self.speed == 0:
+            logging.debug('Stop for 1 second')
+            time.sleep(1)
+    
+    # update car speed if available and store speed
+    # variable regardless of whether or not a car exists        
+    def set_speed(self, speed):
+        self.speed = speed
+        if self.car is not None:
+            logging.debug('Setting car speed to %d' % speed)
+            self.car.back_wheels.speed = speed
             
-            # perform object detection
-            # only detect objects if >30% confident
-            # extract 3 objects (maximum) per frame
-            run_inference(self.interpreter, img_rgb.tobytes())
-            objs = get_objects(self.interpreter, self.min_confidence)[:self.num_of_objects]
-            
-            # overlay bounding boxes, confidence scores and labels onto original image
-            img_objs = append_objs_to_img(img_rgb, self.inference_size, objs, self.labels)
-            inference_time = time.time() - start_ms
-            logging.debug('.1f FPS' % (1.0 / inference_time))
-            
-            # return detected objects and image with overlayed objects
-            return objs, img_objs
-                    
-        # overlay object detection bounding box, label and confidence/score onto original image
-        # https://github.com/google-coral/examples-camera/blob/master/opencv/detect.py
-        def append_objs_to_img(img, inference_size, objs, labels):
-            # return raw image if no objects detected
-            if len(objs) == 0:
-                logging.debug('No objects detected...')
-                return img
-            
-            # extract image properties and scale to match detected objects to raw image
-            height, width, channels = img.shape
-            scale_x, scale_y = width / inference_size[0], height / inference_size[1]
-            
-            # process all detected objects
-            for obj in objs:
-                # scale bounding box and extract key coordinates for overlay
-                bbox = obj.bbox.scale(scale_x, scale_y)
-                bottom_left = (int(bbox.xmin), int(bbox.ymin))
-                top_right = (int(bbox.xmax), int(bbox.ymax))
-                top_left_text = (int(bbox.xmin), int(bbox.ymax) + 15)
+    ########## IMAGE PROCESSING METHODS ##########
+    
+    # perform object detection and overlay onto original frame
+    # return detected objects for further use/analysis
+    def detect_objects(self, frame):
+        # adjust image for compatibility and optimal image detection
+        logging.debug('Detecting objects...')            
+        start_ms = time.time()
+        img = frame
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img_rgb = cv2.resize(img_rgb, self.inference_size)
+        
+        # perform object detection
+        # only detect objects if >30% confident
+        # extract 3 objects (maximum) per frame
+        run_inference(self.interpreter, img_rgb.tobytes())
+        objs = get_objects(self.interpreter, self.min_confidence)[:self.num_of_objects]
+        
+        # overlay bounding boxes, confidence scores and labels onto original image
+        img_objs = append_objs_to_img(img, self.inference_size, objs, self.labels)
+        inference_time = time.time() - start_ms
+        logging.debug('%.1f FPS' % (1.0 / inference_time))
+        
+        # return detected objects and image with overlayed objects
+        return objs, img_objs
                 
-                # format score and label
-                percent = int(10 * obj.score)
-                obj_lbl = labels.get(obj.id, obj.id)
-                label = '{}% {}'.format(percent, obj_lbl)
-                logging.debug('Detected object [%s] with confidence [%s]' % (obj_lbl, percent))
-                
-                # overlay bounding box, score and label onto original image
-                img = cv2.rectangle(img, bottom_left, top_right, self.boxColor, self.boxLineWidth)
-                img = cv2.putText(img, label, top_left_text, self.fontColor, self.fontScale, self.boxColor, self.lineType)
-            
-            # return image with object detection overlay
-            return img
+# overlay object detection bounding box, label and confidence/score onto original image
+# https://github.com/google-coral/examples-camera/blob/master/opencv/detect.py
+def append_objs_to_img(img, inference_size, objs, labels):
+    # return raw image if no objects detected
+    if len(objs) == 0:
+        logging.debug('No objects detected...')
+        return img
+    
+    # extract image properties and scale to match detected objects to raw image
+    height, width, channels = img.shape
+    scale_x, scale_y = width / inference_size[0], height / inference_size[1]
+    
+    # process all detected objects
+    for obj in objs:
+        # scale bounding box and extract key coordinates for overlay
+        bbox = obj.bbox.scale(scale_x, scale_y)
+        bottom_left = (int(bbox.xmin), int(bbox.ymin))
+        top_right = (int(bbox.xmax), int(bbox.ymax))
+        top_left_text = (int(bbox.xmin), int(bbox.ymax) + 15)
+        
+        # format score and label
+        percent = int(10 * obj.score)
+        obj_lbl = labels.get(obj.id, obj.id)
+        label = '{}% {}'.format(percent, obj_lbl)
+        logging.debug('Detected object [%s] with confidence [%s]' % (obj_lbl, percent))
+        
+        # overlay bounding box, score and label onto original image
+        img = cv2.rectangle(img, bottom_left, top_right, (0, 255, 0), 1)
+        img = cv2.putText(img, label, top_left_text, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 1)
+    
+    # return image with object detection overlay
+    return img
         
 ########## UTILITY FUNCTIONS ##########
         
@@ -244,7 +244,10 @@ def test_video(video):
         i = 0
         while camera.isOpened():
             # write raw video frames to png file
-            _, frame = camera.read()
+            ret, frame = camera.read()
+            if not ret:
+                logging.error('No frame captured by camera.')
+                continue
             cv2.imwrite('%s_%03d.png' % (video, i), frame)
             
             # write frames with object detection to png and video files
