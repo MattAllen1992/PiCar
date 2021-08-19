@@ -91,8 +91,8 @@ def detect_edges(frame):
     show_image('HSV', hsv)
     
     # extract colour regions in the blue range (colour of lane lines)
-    lower_blue = np.array([30, 40, 0])
-    upper_blue = np.array([150, 255, 255])
+    lower_blue = np.array([80, 50, 50])
+    upper_blue = np.array([120, 255, 255])
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
     show_image('Blue Mask', mask)
     
@@ -139,6 +139,7 @@ def detect_line_segments(cropped_edges):
     
     # extract definite lines from cropped edges image
     line_segments = cv2.HoughLinesP(cropped_edges, rho, angle, min_threshold, np.array([]), minLineLength, maxLineGap)
+    return line_segments
 
 # differentiate left and right lanes, calculating an average gradient for the final lanes
 def average_slope_intercept(frame, line_segments):
@@ -218,9 +219,9 @@ def compute_steering_angle(frame, lane_lines):
     else:
         # averae the x coordinates of the end points to find the middle
         _, _, left_x2, _ = lane_lines[0][0]
-        _, _, rightx2, _ = lane_lines[1][0]
+        _, _, right_x2, _ = lane_lines[1][0]
         #camera_mid_offset_percent = 0.02                       # -0.03, 0.0, 0.03 = left, centre, right
-        mid = int(width / 2 * (1 + camera_mid_offset_percent)) # get middle x value
+        mid = int(width / 2) # get middle x value
         
         # calculate average x and subtract middle to find required adjustment
         # the car is facing straight ahead so the adjustment required is the diff to middle
@@ -268,7 +269,7 @@ def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_lane_l
 ########## HELPER FUNCTIONS ##########
 
 # draw lines following the provided coordinates and overlay onto frame
-def display_lines(frame, lines, line_color=(0, 0, 255), line_width=5):
+def display_lines(frame, lines, line_color=(0, 255, 0), line_width=5):
     line_image = np.zeros_like(frame)
     if lines is not None:
         for line in lines:
@@ -316,7 +317,7 @@ def length_of_line_segment(line):
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 # display frame with title if allowed
-def show_image(title, frame, show=False):
+def show_image(title, frame, show=True):
     if show:
         cv2.imshow(title, frame)
 
