@@ -91,8 +91,8 @@ def detect_edges(frame):
     show_image('HSV', hsv)
     
     # extract colour regions in the blue range (colour of lane lines)
-    lower_blue = np.array([80, 50, 50])
-    upper_blue = np.array([120, 255, 255])
+    lower_blue = np.array([84, 55, 120])
+    upper_blue = np.array([150, 215, 255])
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
     show_image('Blue Mask', mask)
     
