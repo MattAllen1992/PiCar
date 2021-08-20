@@ -18,9 +18,11 @@ class Car(object):
         
         # select camera and set image dimensions
         logging.debug('Initializing Camera...')
-        self.camera = cv2.VideoCapture(-1)
-        self.camera.set(3, 320)
-        self.camera.set(4, 240)
+        self.camera = cv2.VideoCapture(0)
+        self.width = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height = int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.camera.set(3, self.width)
+        self.camera.set(4, self.height)
         
         # calibrate servo motors to centre (90)
         # DO NOT exceed -30:30 for offset calibration (offset = rotation)
@@ -57,7 +59,7 @@ class Car(object):
         
     # create video writer at 20 fps in XVID format
     def create_video_recorder(self, path):
-        return cv2.VideoWriter(path, self.fourcc, 20.0, (320, 240)) # 20 fps
+        return cv2.VideoWriter(path, self.fourcc, 20.0, (self.width, self.height)) # 20 fps
     
     # with statements - https://www.geeksforgeeks.org/with-statement-in-python/
     # entry point of video writer with statement
