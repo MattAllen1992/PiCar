@@ -2,10 +2,9 @@
 import cv2
 import numpy as np
 
-# get images from camera and initialize frame counter for looping video
+# get images from camera
 #cap = cv2.VideoCapture("car/data/videos/study_test_video.avi") # load local video
 cap = cv2.VideoCapture("car/data/videos/study_test_video2.avi")
-#frameCounter = 0
 
 # callback for trackbar
 def empty(a):
@@ -24,12 +23,6 @@ cv2.createTrackbar("VAL Max", "HSV", 255, 255, empty)
 
 # continuously capture images until user terminates session
 while True:
-    # if we reach the end of the video, replay from the start
-    # frameCounter += 1
-    # if cap.get(cv2.CAP_PROP_FRAME_COUNT) == frameCounter:
-    #     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-    #     frameCounter = 0
-
     # get image and create HSV copy of raw image (easier to extract colours for lanes)
     ret, img = cap.read()   
     if ret == True:

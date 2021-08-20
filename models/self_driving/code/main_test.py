@@ -3,14 +3,14 @@ import logging
 import sys
 
 '''
-main.py starts the car, using the camera to record live video input
+main_test.py starts the car, using the provided video as a test input
 it then applies lane following, object detection and navigation
 '''
 
 def main():
     # print out system info and start driving car at 40% speed
     logging.info('Starting Car, system info:' + sys.version)
-    with Car() as car:
+    with Car(video_path='car/data/videos/study_test_video2.avi') as car:
         car.drive(40)
         
 if __name__ == '__main__':

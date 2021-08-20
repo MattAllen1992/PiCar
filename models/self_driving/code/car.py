@@ -11,14 +11,14 @@ video capture, driving controls, lane detection,
 object detection and storage of the recorded videos
 """
 class Car(object):    
-    def __init__(self):
+    def __init__(self, video_source=0):
         # initialize car API
         logging.info('Initializing Car...')
         picar.setup()
         
         # select camera and set image dimensions
         logging.debug('Initializing Camera...')
-        self.camera = cv2.VideoCapture(0)
+        self.camera = cv2.VideoCapture(video_source)
         self.width = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.camera.set(3, self.width)

@@ -2,8 +2,7 @@ import cv2
 import numpy as np
 import logging
 import math
-import datetime
-import sys
+from lane_follower_ml import LaneFollowerML
 
 '''
 Manual Lane Detection and Navigation
@@ -32,8 +31,7 @@ class LaneFollowerManual(object):
     def follow_lane(self, frame):
         show_image('Raw Image', frame)
         lane_lines, frame = detect_lane(frame)
-        final_frame = self.steer(frame, lane_lines)
-        
+        final_frame = self.steer(frame, lane_lines)        
         return final_frame
    
     # determine steering adjustment required to follow central heading line
@@ -89,33 +87,44 @@ def detect_edges(frame):
     # convert image to HSV for ease of colour extraction
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     show_image('HSV', hsv)
+
+    # blur image for better edge detection
+    # 3, 3 strength of blur in x and y directions
+    hsv_blur = cv2.GaussianBlur(hsv, (3, 3), 0) 
     
     # extract colour regions in the blue range (colour of lane lines)
-    lower_blue = np.array([84, 55, 120])
+    lower_blue = np.array([84, 55, 120]) # upper and lower bounds calibrated using colour_picker.py
     upper_blue = np.array([150, 215, 255])
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
+    mask = cv2.inRange(hsv_blur, lower_blue, upper_blue)
     show_image('Blue Mask', mask)
+
+    # convert to gray scale for simplicity of edge detection
+    # can't go straight from hsv to gray, need rgb middle man
+    # mask_rgb = cv2.cvtColor(mask, cv2.COLOR_HSV2RGB)
+    # mask_gray = cv2.cvtColor(mask_rgb, cv2.COLOR_RGB2GRAY)
     
     # perform canny edge detection
     # gaussian blur to reduce noise, retain/clarify edges
     # calculate gradients (Sobel edge detector kernel) to determine direction and likelihood of edge
     # non-max suppression to clarify and produce thin, crisp edges (suppress non maximum values along suspected edge)
     # hysteresis thresholding to determine final edges (looking at connections, pixel value vs. min and max thresholds)
-    edges = cv2.Canny(mask, 200, 400)
+    lower_threshold = 85 # calibrated using canny_edge_calibration.py
+    upper_threshold = lower_threshold * 3 # recommended ratio in canny docs
+    edges = cv2.Canny(mask, lower_threshold, upper_threshold)
     
     # return final edges
     return edges
 
-# black out top half of image to focus on lanes only
-# lanes occur in the bottom half from car's perspective
+# black out top 2/3 of image to focus on lanes only
+# lanes occur in the bottom 2/3 from car's perspective
 def region_of_interest(canny):
     # create mask array matching image dimensions
     height, width = canny.shape
     mask = np.zeros_like(canny)
     
-    # extract top half of image
-    polygon = np.array([[(0, height * 1 / 2),
-                         (width, height * 1 / 2),
+    # extract top 2/3 of image
+    polygon = np.array([[(0, height * 2 / 3),
+                         (width, height * 2 / 3),
                          (width, height),
                          (0, height)]], np.int32)
     
@@ -214,13 +223,14 @@ def compute_steering_angle(frame, lane_lines):
         logging.debug('Only detected 1 lane line, follow it: %s' % lane_lines[0])
         x1, _, x2, _ = lane_lines[0][0]
         x_offset = x2 - x1
+
     # if multiple lanes are detected, average the distance between them
     # and use this to calculate the heading path between the two
     else:
         # averae the x coordinates of the end points to find the middle
         _, _, left_x2, _ = lane_lines[0][0]
         _, _, right_x2, _ = lane_lines[1][0]
-        #camera_mid_offset_percent = 0.02                       # -0.03, 0.0, 0.03 = left, centre, right
+        #camera_mid_offset_percent = 0.02 # -0.03, 0.0, 0.03 = left, centre, right
         mid = int(width / 2) # get middle x value
         
         # calculate average x and subtract middle to find required adjustment
@@ -244,7 +254,7 @@ def compute_steering_angle(frame, lane_lines):
 # if the new steering angle is too extreme, the car will turn dramatically left and right, bouncing from lane to lane
 # this method ensures that the steering angle is never adjusted more than the max_angle_deviation in one go
 # NOTE: this could be enhanced to use the history of steering adjustments (e.g. last n adjustments) to smoothen the steering even more
-def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_lane_lines, max_angle_deviation_two_lanes=5, max_angle_deviation_one_lane=1):
+def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_lane_lines, max_angle_deviation_two_lanes=10, max_angle_deviation_one_lane=5):
     # set max_angle_deviation based on number of lanes detected
     # for 2 lanes we are more confident in our heading so allow more steering adjustments
     # for 1 lane we want minor changes until we see 2 lanes again and can more confidently adjust our course
@@ -345,9 +355,9 @@ def make_points(frame, line):
 # load a test image, run lane detection, display lanes and calculated heading path on raw image
 def test_photo(file):
     # read image and perform lane detection
-    lane_follower_ml = LaneFollowerML()
+    lane_follower = LaneFollowerManual()
     frame = cv2.imread(file)
-    img_lanes = lane_follower_ml.follow_lane(frame)
+    img_lanes = lane_follower.follow_lane(frame)
     
     # overlay lanes and heading line on image and disokay
     show_image('Deep Learning Lane Detection', img_lanes, True)
@@ -355,7 +365,7 @@ def test_photo(file):
     
     # shutdown and close sessions
     cv2.waitKey(0)
-    cs2.destroyAllWindows()
+    cv2.destroyAllWindows()
 
 # run lane detection and calculation of steering angle/heading line on test video
 # compute lane detection using the deep learning model and the manually coded version
