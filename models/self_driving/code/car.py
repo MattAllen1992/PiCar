@@ -1,6 +1,7 @@
 import logging
 import picar
 import cv2
+from time import sleep
 import datetime
 from lane_follower_manual import LaneFollowerManual
 from road_objects_processor import RoadObjectsProcessor
@@ -31,7 +32,7 @@ class Car(object):
         self.pan_servo.write(90) # point straight ahead
         self.tilt_servo = picar.Servo.Servo(2)
         self.tilt_servo.offset = 90
-        self.tilt_servo.write(30) # aim slightly towards the ground for lane following
+        self.tilt_servo.write(20) # aim slightly towards the ground for lane following
         
         # initialize API for back wheels (allows forward, backward, stop methods etc.)
         logging.debug('Initializing back wheels...')
@@ -42,6 +43,7 @@ class Car(object):
         logging.debug('Initializing front wheels...')
         self.front_wheels = picar.front_wheels.Front_Wheels()
         self.front_wheels.turning_offset = -25
+        sleep(0.01) # sleep to ensure adjustments are made
         self.front_wheels.turn(90) # ranges from 45 to 90 to 135 (left, center, right
         
         # initialize lane following and object detection algorithms

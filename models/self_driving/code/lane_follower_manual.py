@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import logging
 import math
+from time import sleep
 #from lane_follower_ml import LaneFollowerML
 
 '''
@@ -26,6 +27,7 @@ class LaneFollowerManual(object):
         logging.info('Initializing Manual Lane Follower...')
         self.car = car
         self.curr_steering_angle = 90 # straight ahead
+        sleep(0.01) # sleep to ensure adjustments are made
     
     # peform lane detection and adjust steering accordingly
     def follow_lane(self, frame):
@@ -49,6 +51,7 @@ class LaneFollowerManual(object):
         # adjust cars steering if exists
         if self.car is not None:
             self.car.front_wheels.turn(self.curr_steering_angle)
+            sleep(0.01) # sleep to ensure adjustments are made
             
         # display heading line as overlay and return image
         curr_heading_image = display_heading_line(frame, self.curr_steering_angle)
