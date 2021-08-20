@@ -115,16 +115,16 @@ def detect_edges(frame):
     # return final edges
     return edges
 
-# black out top 2/3 of image to focus on lanes only
-# lanes occur in the bottom 2/3 from car's perspective
+# black out top half of image to focus on lanes only
+# lanes occur in the bottom half from car's perspective
 def region_of_interest(canny):
     # create mask array matching image dimensions
     height, width = canny.shape
     mask = np.zeros_like(canny)
     
-    # extract top 2/3 of image
-    polygon = np.array([[(0, height * 2 / 3),
-                         (width, height * 2 / 3),
+    # extract top half of image
+    polygon = np.array([[(0, height * 1 / 2),
+                         (width, height * 1 / 2),
                          (width, height),
                          (0, height)]], np.int32)
     
@@ -241,11 +241,10 @@ def compute_steering_angle(frame, lane_lines):
     # roi/lane only covers image bottom half
     y_offset = int(height / 2)
     
-    # calculate required adjustment in radians and convert to degrees
-    # 90 is the straight ahead direction, so any adjustment starts from there (i.e. "+ 90" below)
-    angle_to_mid_radian = math.atan(x_offset / y_offset)
-    angle_to_mid_deg = int(angle_to_mid_radian * 180.0 / math.pi)
-    new_steering_angle = angle_to_mid_deg + 90
+    # calculate required steering adjustment
+    angle_to_mid_radian = math.atan(x_offset / y_offset)          # tan(angle) = opposite / adjacent (TOA)
+    angle_to_mid_deg = int(angle_to_mid_radian * 180.0 / math.pi) # convert from radians to degrees
+    new_steering_angle = angle_to_mid_deg + 90                    # adjust angle relative to 90 degrees/straight ahead servo angle
     
     # return calculated steering angle
     logging.debug('New steering angle: %s' % new_steering_angle)
