@@ -1,5 +1,6 @@
 import cv2
 import os
+from datetime import datetime
 
 # save frames to mp4 video file at provided path
 def save_video():
@@ -11,7 +12,9 @@ def save_video():
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     
     # create writer, specifying output path and video format
-    video_path = '../data/videos/study_test_video.avi'
+    #now = datetime.now()
+    #now = now.strftime('%m%d%Y_%H%M%S')
+    video_path = '../data/videos/study_test_video3.avi'
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     writer = cv2.VideoWriter(video_path, fourcc, 20.0, (width, height)) # 20 fps
     
