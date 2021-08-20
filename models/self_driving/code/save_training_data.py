@@ -12,7 +12,7 @@ def save_image_and_steering_angle(video_file):
         while video.isOpened():
             # write image to path with incremented index for each new image
             # save steering angle in file name to save us having to store a map of image name to steering angle
-            _, frame = cap.read()
+            _, frame = video.read()
             cv2.imwrite("%s_%03d_%03d.png" % (video_file, i, lane_follower_manual.curr_steering_angle), frame)
             i += 1
             
