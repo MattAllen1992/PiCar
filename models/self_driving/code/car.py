@@ -28,10 +28,10 @@ class Car(object):
         # calibrate servo motors to centre (90)
         # DO NOT exceed -30:30 for offset calibration (offset = rotation)
         self.pan_servo = picar.Servo.Servo(1)
-        self.pan_servo.offset = 30
+        #self.pan_servo.offset = 30
         self.pan_servo.write(90) # point straight ahead
         self.tilt_servo = picar.Servo.Servo(2)
-        self.tilt_servo.offset = 90
+        #self.tilt_servo.offset = 90
         self.tilt_servo.write(20) # aim slightly towards the ground for lane following
         
         # initialize API for back wheels (allows forward, backward, stop methods etc.)
@@ -42,13 +42,13 @@ class Car(object):
         # initialize API for front wheels (allows left, right, straight and custom turn etc.)
         logging.debug('Initializing front wheels...')
         self.front_wheels = picar.front_wheels.Front_Wheels()
-        self.front_wheels.turning_offset = -25
-        sleep(0.01) # sleep to ensure adjustments are made
+        #self.front_wheels.turning_offset = -25
+        #sleep(0.01) # sleep to ensure adjustments are made
         self.front_wheels.turn(90) # ranges from 45 to 90 to 135 (left, center, right
         
         # initialize lane following and object detection algorithms
         self.lane_follower_manual = LaneFollowerManual(self)
-        self.process_road_objects = RoadObjectsProcessor(self)
+        self.process_road_objects = RoadObjectsProcessor(self, width=self.width, height=self.height)
         
         # setup writer to store recorded video
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID') # write video to XVID format
@@ -83,6 +83,7 @@ class Car(object):
         logging.info('Shutting down Car, resetting hardware...')
         self.back_wheels.speed = 0 # reset wheels to centre/stopped
         self.front_wheels.turn(90)
+        sleep(0.01) # delay to allow front and back wheel adjustments to register
         self.camera.release() # close camera and writer sessions
         self.video_orig.release()
         self.video_lane.release()
@@ -94,6 +95,7 @@ class Car(object):
         # accelerate back wheels to requested speed (range 0-100)
         logging.info('Car driving at speed %s...' % speed)
         self.back_wheels.speed = speed
+        sleep(0.01) # allow wheels to register change
         i = 0
         
         # while camera is capturing frames
@@ -113,7 +115,7 @@ class Car(object):
             show_image('Detected Objects', img_objs)
         
             # run lane detection, save frame with lanes overlay to video and show image
-            img_lane = self.follow_lane(img_lane)
+            img_lane = self.lane_follower_manual.follow_lane(img_lane)
             self.video_lane.write(img_lane)
             show_image('Lane Lines', img_lane)
             
@@ -121,16 +123,6 @@ class Car(object):
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.cleanup()
                 break
-            
-    # perform object detection
-    def process_objects_on_road(self, img):
-        image = self.process_road_objects.process_road_objects(img)
-        return
-    
-    # perform lane detection
-    def follow_lane(self, img):
-        img = self.lane_follower_manual.follow_lane(img)
-        return img
     
 """
 Helper Functions
@@ -138,6 +130,7 @@ Helper Functions
     main method instantiates the car, sets its speed at 40% and runs above code
     call main method initializes logging
 """
+
 def show_image(title, frame, show=True):
     if show:
         cv2.imshow(title, frame)

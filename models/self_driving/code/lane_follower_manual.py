@@ -31,7 +31,7 @@ class LaneFollowerManual(object):
     
     # peform lane detection and adjust steering accordingly
     def follow_lane(self, frame):
-        show_image('Raw Image', frame)
+        show_image('Raw Image', frame, False)
         lane_lines, frame = detect_lane(frame)
         final_frame = self.steer(frame, lane_lines)        
         return final_frame
@@ -46,7 +46,8 @@ class LaneFollowerManual(object):
         
         # compute required steering angle and stabilize if required (for extreme, sudden steering adjustments)
         new_steering_angle = compute_steering_angle(frame, lane_lines)
-        self.curr_steering_angle = stabilize_steering_angle(self.curr_steering_angle, new_steering_angle, len(lane_lines))
+        #self.curr_steering_angle = stabilize_steering_angle(self.curr_steering_angle, new_steering_angle, len(lane_lines))
+        self.curr_steering_angle = new_steering_angle
 
         # adjust cars steering if exists
         if self.car is not None:
@@ -65,17 +66,17 @@ def detect_lane(frame):
     # identify all edges/boundaries using canny edge detection
     logging.debug('Performing lane detection...')
     edges = detect_edges(frame)
-    show_image('Edge Detection', edges)
+    show_image('Edge Detection', edges, False)
     
     # black out top half of image to focus on lanes
     # which occur in the bottom half from car's perspective
     cropped_edges = region_of_interest(edges)
-    show_image('Cropped Edges', cropped_edges)
+    show_image('Cropped Edges', cropped_edges, False)
     
     # identify all left and right lane edges
     line_segments = detect_line_segments(cropped_edges)
     img_line_segments = display_lines(frame, line_segments)
-    show_image('Line Segments', img_line_segments)
+    show_image('Line Segments', img_line_segments, False)
     
     # compute final left and right lanes (average of all available)
     lane_lines = average_slope_intercept(frame, line_segments)
@@ -89,7 +90,7 @@ def detect_lane(frame):
 def detect_edges(frame):
     # convert image to HSV for ease of colour extraction
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    show_image('HSV', hsv)
+    show_image('HSV', hsv, False)
 
     # blur image for better edge detection
     # 3, 3 strength of blur in x and y directions
@@ -133,7 +134,7 @@ def region_of_interest(canny):
     
     # black out top half of image
     cv2.fillPoly(mask, polygon, 255)
-    show_image('ROI Mask', mask)
+    show_image('ROI Mask', mask, False)
     
     # apply mask to image to blackout top half
     masked_image = cv2.bitwise_and(canny, mask)
@@ -256,7 +257,7 @@ def compute_steering_angle(frame, lane_lines):
 # if the new steering angle is too extreme, the car will turn dramatically left and right, bouncing from lane to lane
 # this method ensures that the steering angle is never adjusted more than the max_angle_deviation in one go
 # NOTE: this could be enhanced to use the history of steering adjustments (e.g. last n adjustments) to smoothen the steering even more
-def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_lane_lines, max_angle_deviation_two_lanes=10, max_angle_deviation_one_lane=5):
+def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_lane_lines, max_angle_deviation_two_lanes=15, max_angle_deviation_one_lane=10):
     # set max_angle_deviation based on number of lanes detected
     # for 2 lanes we are more confident in our heading so allow more steering adjustments
     # for 1 lane we want minor changes until we see 2 lanes again and can more confidently adjust our course
