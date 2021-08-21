@@ -31,7 +31,7 @@ class Car(object):
         #self.pan_servo.offset = 30
         self.pan_servo.write(90) # point straight ahead
         self.tilt_servo = picar.Servo.Servo(2)
-        #self.tilt_servo.offset = 90
+        self.tilt_servo.offset = 90
         self.tilt_servo.write(20) # aim slightly towards the ground for lane following
         
         # initialize API for back wheels (allows forward, backward, stop methods etc.)
