@@ -257,7 +257,7 @@ def compute_steering_angle(frame, lane_lines):
 # if the new steering angle is too extreme, the car will turn dramatically left and right, bouncing from lane to lane
 # this method ensures that the steering angle is never adjusted more than the max_angle_deviation in one go
 # NOTE: this could be enhanced to use the history of steering adjustments (e.g. last n adjustments) to smoothen the steering even more
-def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_lane_lines, max_angle_deviation_two_lanes=20, max_angle_deviation_one_lane=15):
+def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_lane_lines, max_angle_deviation_two_lanes=10, max_angle_deviation_one_lane=5):
     # set max_angle_deviation based on number of lanes detected
     # for 2 lanes we are more confident in our heading so allow more steering adjustments
     # for 1 lane we want minor changes until we see 2 lanes again and can more confidently adjust our course

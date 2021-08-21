@@ -11,7 +11,7 @@ Car is an instance of the PiCar itself, equipped with
 video capture, driving controls, lane detection,
 object detection and storage of the recorded videos
 """
-class Car(object):    
+class Car(object):
     def __init__(self, video_source=0):
         # initialize car API
         logging.info('Initializing Car...')
@@ -99,14 +99,20 @@ class Car(object):
         i = 0
         
         # while camera is capturing frames
-        while self.camera.isOpened():
+        while self.camera.isOpened():            
             # read frame and write to raw video
             ret, img_lane = self.camera.read()
             if not ret:
                 logging.error('Camera couldn\'t get image.')
                 continue
-            img_objs = img_lane.copy() # create copy of frame for separate lane and object detection
+            
+            # skip first 5 frames while car is initializing
             i += 1
+            if i < 5:
+                continue
+            
+            # create copy of frame for separate lane and object detection
+            img_objs = img_lane.copy()
             self.video_orig.write(img_lane)
         
             # run object detection, save frame with objects overlay to video and show image
