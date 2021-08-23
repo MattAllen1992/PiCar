@@ -3,6 +3,7 @@ import picar
 import cv2
 from time import sleep
 import datetime
+from rectify_fisheye import rectify_fisheye
 from lane_follower_manual import LaneFollowerManual
 from road_objects_processor import RoadObjectsProcessor
 
@@ -107,10 +108,13 @@ class Car(object):
                 logging.error('Camera couldn\'t get image.')
                 continue
             
-            # skip first 5 frames while car is initializing
-            i += 1
-            if i < 5:
-                continue
+            # # skip first 5 frames while car is initializing
+            # i += 1
+            # if i < 5:
+            #     continue
+
+            # rectify image from fisheye to normal view
+            img_lane = rectify_fisheye(img_lane)
             
             # create copy of frame for separate lane and object detection
             img_objs = img_lane.copy()

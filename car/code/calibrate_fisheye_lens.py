@@ -1,8 +1,8 @@
 # load libraries
 import cv2
-assert cv2.__version__[0] == '3' # fisheye module requires version >= 3
+assert cv2.__version__[0] >= '3' # fisheye module requires version >= 3
 import numpy as np
-import os
+from pathlib import Path
 import glob # regex for file paths
 
 # config parameters for checkerboard calibration
@@ -20,7 +20,7 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane
 
 # load checkerboard images from different angles
-images = glob.glob(*'*.jpg')
+images = glob.glob('/Users/matthewallen/robots/PiCar/car/data/images/*.jpg')
 
 # iterate through images
 for fname in images:

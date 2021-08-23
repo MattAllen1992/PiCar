@@ -22,9 +22,9 @@ https://medium.com/@kennethjiang/calibrate-fisheye-lens-using-opencv-part-2-1399
 # initialize recitification parameters
 # these inputs are produced by the 'calibrate_fisheye_lens.py' script
 # and are specific to the fisheye camera used in my hardware setup
-dim = 1
-k = np.array()
-d = np.array()
+dim = (640, 480)
+k = np.array([[238.1859118572264, 0.0, 312.42790688241655], [0.0, 236.853433869872, 272.71589542075395], [0.0, 0.0, 1.0]])
+d = np.array([[-0.03446472848769435], [0.03960450174148329], [-0.10504021701514105], [0.07290318807503687]])
 
 # convert a fisheye lens image to a rectified, normal image
 def rectify_fisheye(img, balance=0.0, dim2=None, dim3=None):
@@ -47,7 +47,7 @@ def rectify_fisheye(img, balance=0.0, dim2=None, dim3=None):
     scaled_k[2][2] = 1.0 # except that k[2][2] is always 1.0
 
     # calculate new matrix based on desired output dimensions
-    new_k = cv2.fisheye.estimateNewCameraMatrixForUndistortedRectify(scaled_k, d, dim2, np.eye(3), balance=balance)
+    new_k = cv2.fisheye.estimateNewCameraMatrixForUndistortRectify(scaled_k, d, dim2, np.eye(3), balance=balance)
 
     # create x and y map of raw fisheye camera to rectified, desired output image
     map1, map2 = cv2.fisheye.initUndistortRectifyMap(scaled_k, d, np.eye(3), new_k, dim3, cv2.CV_16SC2) # np.eye(3) = 3x3 grid with diagonal 1s

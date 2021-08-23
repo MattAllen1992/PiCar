@@ -4,7 +4,7 @@ from rectify_fisheye import rectify_fisheye
 
 while True:
     # load image and show
-    img = cv2.imread('/Users/matthewallen/robots/PiCar/car/data/images/')
+    img = cv2.imread('/Users/matthewallen/robots/PiCar/car/data/images/checkerboard_08232021_184505.jpg')
     cv2.imshow('Raw Image', img)
 
     # rectify image and show
