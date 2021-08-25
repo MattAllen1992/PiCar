@@ -115,6 +115,7 @@ class Car(object):
 
             # rectify image from fisheye to normal view
             img_lane = rectify_fisheye(img_lane)
+            show_image('Rectified Image', img_lane)
             
             # create copy of frame for separate lane and object detection
             img_objs = img_lane.copy()
