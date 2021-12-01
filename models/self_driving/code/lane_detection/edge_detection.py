@@ -14,8 +14,8 @@ def detect_edges_canny(frame):
     
     # extract colour regions in the desired range (colour of lane lines)
     # upper and lower bounds calibrated using colour_picker.py
-    lower_hsv = np.array([0, 0, 75]) 
-    upper_hsv = np.array([179, 255, 255])
+    lower_hsv = np.array([0, 0, 79])
+    upper_hsv = np.array([179, 225, 255])
     mask = cv2.inRange(hsv_blur, lower_hsv, upper_hsv)
     show_image('Mask', mask)
 
