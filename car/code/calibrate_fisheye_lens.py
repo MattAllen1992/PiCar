@@ -20,7 +20,7 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane
 
 # load checkerboard images from different angles
-images = glob.glob('/Users/matthewallen/robots/PiCar/car/data/images/*.jpg')
+images = glob.glob('/Users/matthewallen/robots/PiCar/car/data/checkerboard_calibration_images/*.jpg')
 
 # iterate through images
 for fname in images:

@@ -114,7 +114,10 @@ class Car(object):
             #     continue
 
             # rectify image from fisheye to normal view
-            img_lane = rectify_fisheye(img_lane)
+            # pick between 0 and 1 (most and least) pixel loss in final image
+            # 0 results in full image but lose some pixels
+            # 1 results in more pixels but black gaps in image due to warping
+            img_lane = rectify_fisheye(img_lane, 0.4)
             show_image('Rectified Image', img_lane)
             
             # create copy of frame for separate lane and object detection

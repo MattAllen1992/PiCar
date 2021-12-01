@@ -13,7 +13,7 @@ def main():
     edges = detect_edges(frame)
     
     # extract edges in bottom half of image only
-    cropped_edges = get_region_of_interest(edges)
+    cropped_edges = get_region_of_interest(edges, 2/3)
     
     # extract absolute lane lines
     line_segments = detect_line_segments(cropped_edges)
@@ -56,7 +56,7 @@ def detect_edges(frame):
     return edges
     
 # black out the top half of the image and return edges in the bottom half only
-def get_region_of_interest(edges):
+def get_region_of_interest(edges, extract_fraction):
     # extract dimensions of provided image with edges detected
     height, width = edges.shape
     
@@ -64,18 +64,17 @@ def get_region_of_interest(edges):
     # properties/dimensions etc. as the edges image
     mask = np.zeros_like(edges)
     
-    # extract the bottom half of the image
-    # this is all we're interested in for lanes
+    # extract the bottom extract_fraction of the image, this is all we're interested in for lanes
     # (imagine the car's perspective, lanes originate from the bottom)
     # np.array defines the four corners of the polygon (bl, br, tr, tl)
     # this is essentially isolating the top half of the image
-    polygon = np.array([[(0, height * 1/2),
-                        (width, height * 1/2),
+    polygon = np.array([[(0, height * extract_fraction),
+                        (width, height * extract_fraction),
                         (width, height),
                         (0, height),]],
                       np.int32) # define array value type as int32
     
-    # polygon defines top half of the image
+    # polygon defines top portion of the image
     # we then black out this polygon to act as a mask
     # (255=black, polygon=top half, mask=array covering whole image)
     # this can be combined with the original image to black out the top half

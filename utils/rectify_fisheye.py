@@ -23,8 +23,8 @@ https://medium.com/@kennethjiang/calibrate-fisheye-lens-using-opencv-part-2-1399
 # these inputs are produced by the 'calibrate_fisheye_lens.py' script
 # and are specific to the fisheye camera used in my hardware setup
 dim = (640, 480)
-k = np.array([[238.1859118572264, 0.0, 312.42790688241655], [0.0, 236.853433869872, 272.71589542075395], [0.0, 0.0, 1.0]])
-d = np.array([[-0.03446472848769435], [0.03960450174148329], [-0.10504021701514105], [0.07290318807503687]])
+k = np.array([[241.06910353583223, 0.0, 312.0587413795097], [0.0, 245.12556785859005, 272.6308919635552], [0.0, 0.0, 1.0]])
+d = np.array([[-0.08176180051980005], [0.1429492072044187], [-0.17684453168657688], [0.06894578492362775]])
 
 # convert a fisheye lens image to a rectified, normal image
 def rectify_fisheye(img, balance=0.0, dim2=None, dim3=None):
