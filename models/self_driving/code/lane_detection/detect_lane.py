@@ -14,7 +14,7 @@ def detect_lane(frame):
     
     # black out top half of image to focus on lanes
     # which occur in the bottom half from car's perspective
-    cropped_edges = region_of_interest(edges, 2/3)
+    cropped_edges = region_of_interest(edges)
     show_image('Cropped Edges', cropped_edges, False)
     
     # identify all left and right lane edges

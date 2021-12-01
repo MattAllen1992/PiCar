@@ -3,7 +3,7 @@ import picar
 import cv2
 from time import sleep
 import datetime
-from rectify_fisheye import rectify_fisheye
+from picar_utils.rectify_fisheye import rectify_fisheye
 from lane_follower_manual import LaneFollowerManual
 from road_objects_processor import RoadObjectsProcessor
 

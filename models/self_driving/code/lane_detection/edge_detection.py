@@ -12,11 +12,12 @@ def detect_edges_canny(frame):
     # 3, 3 strength of blur in x and y directions
     hsv_blur = cv2.GaussianBlur(hsv, (3, 3), 0) 
     
-    # extract colour regions in the blue range (colour of lane lines)
-    lower_blue = np.array([84, 55, 120]) # upper and lower bounds calibrated using colour_picker.py
-    upper_blue = np.array([150, 215, 255])
-    mask = cv2.inRange(hsv_blur, lower_blue, upper_blue)
-    show_image('Blue Mask', mask)
+    # extract colour regions in the desired range (colour of lane lines)
+    # upper and lower bounds calibrated using colour_picker.py
+    lower_hsv = np.array([0, 0, 75]) 
+    upper_hsv = np.array([179, 255, 255])
+    mask = cv2.inRange(hsv_blur, lower_hsv, upper_hsv)
+    show_image('Mask', mask)
 
     # convert to gray scale for simplicity of edge detection
     # can't go straight from hsv to gray, need rgb middle man
