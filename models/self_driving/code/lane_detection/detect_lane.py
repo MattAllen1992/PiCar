@@ -1,9 +1,9 @@
 import logging
-from edge_detection import detect_edges_canny
+from images import show_image, display_lines
+from maths import average_slope_intercept
 from roi import region_of_interest
 from line_segments import detect_line_segments
-from maths import average_slope_intercept
-from images import show_image, display_lines
+from edge_detection import detect_edges_canny
 
 # perform lane detection
 def detect_lane(frame):

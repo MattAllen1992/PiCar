@@ -4,7 +4,7 @@ import logging
 import math
 from time import sleep
 from lane_detection.images import show_image, display_heading_line
-from lane_detection.edge_detection import detect_lane
+from lane_detection.detect_lane import detect_lane
 from lane_detection.steering import compute_steering_angle, stabilize_steering_angle
 #from lane_follower_ml import LaneFollowerML
 
